@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        echo "Testing"
+                        docker duild -t catalogue:${app Version} .
                     """
                 }
             }
