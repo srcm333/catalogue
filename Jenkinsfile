@@ -35,7 +35,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        echo "Building"                    
+                        echo "Version: ${appVersion}"                    
                     """
                 } 
             }
