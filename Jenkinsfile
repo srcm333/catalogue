@@ -27,15 +27,14 @@ pipeline {
                     // Extract the version property
                     appVersion = packageJson.version
                     echo "The application version is: ${appVersion}"
-                }
-                
+                }   
             }
         }
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
                 script {
                     sh """
-                        echo "Version: ${appVersion}"                    
+                        npm install                    
                     """
                 } 
             }
