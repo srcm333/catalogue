@@ -8,7 +8,7 @@ pipeline {
         def appVersion = ""
         acc_id = "271434548230"
         project = "roboshop"
-        componenet = "catalogue" 
+        component = "catalogue" 
     }
     options { 
         disableConcurrentBuilds()
