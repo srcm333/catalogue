@@ -4,9 +4,9 @@ pipeline {
             label 'ROBOSHOP' 
         } 
     }
-    /* environment {
-        COURSE = "Jenkins"
-    } */
+    environment {
+        def appVersion = ""
+    }
     options { 
         disableConcurrentBuilds()
         timeout(time: 15, unit: 'MINUTES')
