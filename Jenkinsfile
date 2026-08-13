@@ -8,9 +8,9 @@ pipeline {
         def appVersion = ""
         acc_id = "271434548230"
         project = "roboshop"
-        component = "catalogue" 
+        component = "catalogue"
     }
-    options { 
+    options {
         disableConcurrentBuilds()
         timeout(time: 15, unit: 'MINUTES')
     }
@@ -21,7 +21,7 @@ pipeline {
         choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
         password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
     } */
-    //Build
+    // Build
     stages {
         stage('Read version'){
             steps{
@@ -30,14 +30,14 @@ pipeline {
                     // Extract the version property
                     appVersion = packageJson.version
                     echo "The application version is: ${appVersion}"
-                }   
+                }
             }
         }
         stage('Install Dependencies') {
             steps {
                 script {
                     sh """
-                        npm install                    
+                        npm install
                     """
                 } 
             }
@@ -52,7 +52,7 @@ pipeline {
                 } 
             }
         }
-        stage('SonarQube Analysis') {
+        /* stage('SonarQube Analysis') {
             steps {
                 // 'My SonarQube Server' must match the name configured in Jenkins System Settings
                 withSonarQubeEnv('sonar-server') {
@@ -71,26 +71,59 @@ pipeline {
                     }
                 }
             }
+        } */
+        stage('Check Dependabot Alerts') {
+            steps {
+                withCredentials([string(credentialsId: 'github-token', variable: 'GH_TOKEN')]) {
+                    sh '''
+                        set -e
+
+                        REPO="daws-90s/catalogue"
+
+                        curl -s -L \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "Authorization: Bearer ${GH_TOKEN}" \
+                        -H "X-GitHub-Api-Version: 2026-03-10" \
+                        "https://api.github.com/repos/${REPO}/dependabot/alerts?state=open" \
+                        -o alerts.json
+
+                        echo "---- Open Dependabot Alerts ----"
+                        jq -r '.[] | "\\(.number)\\t\\(.security_vulnerability.severity)\\t\\(.dependency.package.name)\\t\\(.security_advisory.ghsa_id)"' alerts.json
+
+                        HIGH_CRITICAL_COUNT=$(jq '[.[] | select(.security_vulnerability.severity == "high" or .security_vulnerability.severity == "critical")] | length' alerts.json)
+
+                        echo "High/Critical alert count: ${HIGH_CRITICAL_COUNT}"
+
+                        if [ "$HIGH_CRITICAL_COUNT" -gt 0 ]; then
+                            echo "❌ Found ${HIGH_CRITICAL_COUNT} High/Critical severity dependency alert(s). Failing build."
+                            exit 1
+                        else
+                            echo "✅ No High/Critical dependency alerts found."
+                        fi
+                    '''
+                }
+            }
         }
         stage('Docker Build') {
             steps {
                 script {
                     // in this block we get aws authentication
                     withAWS(credentials: 'aws-creds', region: 'us-east-1') {
-                       sh """
-                           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${acc_id}.dkr.ecr.us-east-1.amazonaws.com
-                           docker build -t ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion} .
-                           docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
-                       """
+                        sh """
+                            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${acc_id}.dkr.ecr.us-east-1.amazonaws.com
+                            docker build -t ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion} .
+                            docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
+                        """
                     }
                 }
             }
         }
         stage('Deploy') {
-            when { 
-                expression { "${params.DEPLOY}" == "true" } 
+            when {
+                // Evaluates the boolean parameter directly
+                expression { "${params.DEPLOY}" == "true" }
             }
-              /* input {
+            /* input {
                 message "Should we continue?"
                 ok "Yes, we should."
                 submitter "alice,bob"
@@ -108,14 +141,14 @@ pipeline {
         }
     }
 
-    post {
-        always {
+    post { 
+        always { 
             echo 'I will always say Hello again!'
         }
-        success {
-            echo 'I will Run when it success'
+        success { 
+            echo 'I will run when success'
         }
-        failure {
+        failure { 
             echo 'I will Run when it is failed'
         }
     }
