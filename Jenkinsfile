@@ -61,6 +61,7 @@ pipeline {
                     }
                 }
             }
+        }
         stage('Docker Build') {
             steps {
                 script {
@@ -108,5 +109,4 @@ pipeline {
             echo 'I will Run when it is failed'
         }
     }
-}
 }
