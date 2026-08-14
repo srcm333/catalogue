@@ -72,7 +72,7 @@ pipeline {
                 }
             }
         } */
-       /*  stage('Check Dependabot Alerts') {
+        stage('Check Dependabot Alerts') {
             steps {
                 withCredentials([string(credentialsId: 'github-token', variable: 'GH_TOKEN')]) {
                     sh '''
@@ -103,7 +103,7 @@ pipeline {
                     '''
                 }
             }
-        } */
+        }
         stage('Docker Build') {
             steps {
                 script {
